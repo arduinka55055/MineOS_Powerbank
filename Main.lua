@@ -40,6 +40,16 @@ function rescan()
     end
 end
 
+
+function indexOf(t, object)
+    if type(t) ~= "table" then error("table expected, got " .. type(t), 2) end
+
+    for i, v in pairs(t) do
+        if object == v then
+            return i
+        end
+    end
+end
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local function drawMYCustomProgressBar(object)
@@ -136,7 +146,8 @@ maintabcall.onTouch = function()
         table.insert(meters,meter)
     end
 end
-window.tabBar:addItem("Config").onTouch = function()
+local configurator=window.tabBar:addItem("Config")
+configurator.onTouch = function()
     rescan()
     window:removeChildren(4)
     for key, shit in pairs(elements) do
@@ -150,15 +161,37 @@ window.tabBar:addItem("Config").onTouch = function()
             filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.names",cnames)
         end  
 
+
         local mycomboBox = window:addChild(GUI.comboBox((key%10-1)*11+2, math.floor(key/10)*13+16, 10, 1, 0xaaaaaa, 0x2D2D2D, 0xbbbbbb, 0x888888))
         for groupkey, groupshit in pairs(groups) do
-            mycomboBox:addItem(text.limit(groupshit["name"], 10, "right")).onTouch = function()
-                GUI.alert(mycomboBox.selectedItem)
-                table.insert(groups[mycomboBox.selectedItem],shit)
-                filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
+            if groupshit["name"]==nil then
+            else
+                local luaisshit=false
+                for groupelemkey, groupelemshit in pairs(groupshit) do
+                    if groupelemshit==shit then
+                        luaisshit=true
+                    end
+                end
+                local textik="fuckyou"
+                if luaisshit then
+                    textik="*"..groupshit["name"]
+                    mycomboBox:addItem(text.limit(textik, 10, "right")).onTouch = function()     
+                        table.remove(groups[mycomboBox.selectedItem],indexOf(groups[mycomboBox.selectedItem],shit))
+                        filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
+                        configurator.onTouch()
+                    end
+                else
+                    textik=groupshit["name"]
+                    mycomboBox:addItem(text.limit(textik, 10, "right")).onTouch = function()
+                        table.insert(groups[mycomboBox.selectedItem],shit)
+                        filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
+                        configurator.onTouch()
+                    end
+                end
+               
             end
         end
-end
+    end
 end
 
 window.tabBar:addItem("Group").onTouch = function()
