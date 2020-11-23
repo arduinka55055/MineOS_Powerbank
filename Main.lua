@@ -90,7 +90,7 @@ local function drawMYCustomGroupProgressBar(object)
 
 end
 
-function MyCustomProgressBar(x, y,width, height, activeColors, passiveColor, valueColor, value,id)
+local function MyCustomProgressBar(x, y,width, height, activeColors, passiveColor, valueColor, value,id)
     local object = GUI.object(x, y, width, height)
     object.value = value
     object.colors = {active = activeColors, passive = passiveColor, value = valueColor}
@@ -105,7 +105,7 @@ function MyCustomProgressBar(x, y,width, height, activeColors, passiveColor, val
     return object
 end
 
-function MyCustomGroupProgressBar(x, y,width, height, activeColors, passiveColor, valueColor, value,ids)
+local function MyCustomGroupProgressBar(x, y,width, height, activeColors, passiveColor, valueColor, value,ids)
     local object = GUI.object(x, y, width, height)
     object.value = value
     object.colors = {active = activeColors, passive = passiveColor, value = valueColor}
