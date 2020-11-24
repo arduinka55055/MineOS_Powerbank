@@ -16,7 +16,7 @@ local elements={}
 local meters={}
 local cnames={}
 local groups={}
-
+local scrollOffset=0
 if filesystem.exists(paths.user.applicationData.."/Powerbank/Powerbank.names") then
     cnames=filesystem.readTable(paths.user.applicationData.."/Powerbank/Powerbank.names")
     if filesystem.exists(paths.user.applicationData.."/Powerbank/Powerbank.groups") then
@@ -97,9 +97,10 @@ local function MyCustomProgressBar(x, y,width, height, activeColors, passiveColo
     object.draw = drawMYCustomProgressBar
     object.id=id
     object.update=function() 
-        if component.proxy(object.id)==nil then  
+        local myproxy=component.proxy(object.id)
+        if myproxy==nil then  
         else
-            object.value=number.roundToDecimalPlaces(component.proxy(id).getEnergyStored()/component.proxy(id).getMaxEnergyStored()*100,1)
+            object.value=number.roundToDecimalPlaces(myproxy.getEnergyStored()/myproxy.getMaxEnergyStored()*100,1)
         end
     end
     return object
@@ -117,78 +118,108 @@ local function MyCustomGroupProgressBar(x, y,width, height, activeColors, passiv
         for key, shit in pairs(ids) do
             if shit==object.id then
             else
-                --GUI.alert(shit)
                 if component.proxy(shit)==nil then  
                 else
-                    --GUI.alert(component.proxy(shit).getEnergyStored())
                     sumvalue=sumvalue+component.proxy(shit).getEnergyStored()
                     fullvalue=fullvalue+component.proxy(shit).getMaxEnergyStored()
                 end
             end
         end
-        --GUI.alert((sumvalue/fullvalue)*100)
         object.value=number.roundToDecimalPlaces((sumvalue/fullvalue)*100,1)
     end
     return object
 end
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 local maintabcall=window.tabBar:addItem("Show")
 maintabcall.onTouch = function()
     rescan()
-    window:removeChildren(4)
-    for key, shit in pairs(elements) do
-        -----------------------------------------------
-        local meter=window:addChild(MyCustomProgressBar( (key%10-1)*11+2, math.floor(key/10)*13+5, 10, 10, {0xFF0000,0xFFFF00,0x00FF00}, 0x1D1D1D, 0x000000, 0,shit))
-        meter.update()
+    window:removeChildren(4) 
+    local verticalScrollBar = window:addChild(GUI.scrollBar(window.width, 4, 1, window.height-1, 0x333333, 0x999999, 0, 0, scrollOffset, 0.5, 1, false))
+    
+    if #elements>30 then
+        verticalScrollBar.maximumValue = math.floor((#elements/10)-1)-1
+        verticalScrollBar.shownValueCount=0.7
+    end
+        
+    verticalScrollBar.onTouch = function()
+        scrollOffset=math.floor(verticalScrollBar.value+0.5)
+        meters={}
+        for key, shit in pairs(elements) do
+            if math.floor(key/10)*13+5-scrollOffset*13 >=0 and math.floor(key/10)*13+5-scrollOffset*13 <=35 then
+                -----------------------------------------------
+                local meter=window:addChild(MyCustomProgressBar( (key%10-1)*11+2, -scrollOffset*13 + math.floor(key/10)*13+5, 10, 10, {0xFF0000,0xFFFF00,0x00FF00}, 0x1D1D1D, 0x000000, 0,shit))
+                meter.update()
+                table.insert(meters,meter)
+            end
+        end
+    end
 
-        table.insert(meters,meter)
+    for key, shit in pairs(elements) do
+        if math.floor(key/10)*13+5-scrollOffset*13 >=0 and math.floor(key/10)*13+5-scrollOffset*13 <=35 then
+            -----------------------------------------------
+            local meter=window:addChild(MyCustomProgressBar( (key%10-1)*11+2, -scrollOffset*13 + math.floor(key/10)*13+5, 10, 10, {0xFF0000,0xFFFF00,0x00FF00}, 0x1D1D1D, 0x000000, 0,shit))
+            meter.update()
+
+            table.insert(meters,meter)
+        end
     end
 end
 local configurator=window.tabBar:addItem("Config")
 configurator.onTouch = function()
     rescan()
-    window:removeChildren(4)
+    local verticalScrollBar = window:addChild(GUI.scrollBar(window.width, 4, 1, window.height-1, 0x333333, 0x999999, 0, 0, scrollOffset, 0.5, 1, false))
+    
+    if #elements>30 then
+        verticalScrollBar.maximumValue = math.floor((#elements/10)-1)-1
+        verticalScrollBar.shownValueCount=0.7
+    end
+        
+    verticalScrollBar.onTouch = function()
+        scrollOffset=math.floor(verticalScrollBar.value+0.5)
+        configurator.onTouch()
+    end
+
     for key, shit in pairs(elements) do
-        local meter=window:addChild(MyCustomProgressBar( (key%10-1)*11+2, math.floor(key/10)*13+5, 10, 10, {0xFF0000,0xFFFF00,0x00FF00}, 0x1D1D1D, 0x000000, 0,shit))
-        meter.update()
-        table.insert(meters,meter)
+        if math.floor(key/10)*13+5-scrollOffset*13 >=0 then
 
-        local renamer = window:addChild(GUI.input( (key%10-1)*11+2, math.floor(key/10)*13+15, 10, 1, 0x888888, 0x444444, 0xaa0000, 0xff0000, 0x2D0000, "Rename", "name"))
-        renamer.onInputFinished = function(fuck,good)
-            cnames[shit]=good.text
-            filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.names",cnames)
-        end  
+            local meter=window:addChild(MyCustomProgressBar( (key%10-1)*11+2, -scrollOffset*13 + math.floor(key/10)*13+5, 10, 10, {0xFF0000,0xFFFF00,0x00FF00}, 0x1D1D1D, 0x000000, 0,shit))
+            meter.update()
+            table.insert(meters,meter)
+
+            local renamer = window:addChild(GUI.input( (key%10-1)*11+2, -scrollOffset*13 + math.floor(key/10)*13+15, 10, 1, 0x888888, 0x444444, 0xaa0000, 0xff0000, 0x2D0000, "Rename", "name"))
+            renamer.onInputFinished = function(fuck,good)
+                cnames[shit]=good.text
+                filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.names",cnames)
+            end  
 
 
-        local mycomboBox = window:addChild(GUI.comboBox((key%10-1)*11+2, math.floor(key/10)*13+16, 10, 1, 0xaaaaaa, 0x2D2D2D, 0xbbbbbb, 0x888888))
-        for groupkey, groupshit in pairs(groups) do
-            if groupshit["name"]==nil then
-            else
-                local luaisshit=false
-                for groupelemkey, groupelemshit in pairs(groupshit) do
-                    if groupelemshit==shit then
-                        luaisshit=true
-                    end
-                end
-                local textik="fuckyou"
-                if luaisshit then
-                    textik="*"..groupshit["name"]
-                    mycomboBox:addItem(text.limit(textik, 10, "right")).onTouch = function()     
-                        table.remove(groups[mycomboBox.selectedItem],indexOf(groups[mycomboBox.selectedItem],shit))
-                        filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
-                        configurator.onTouch()
-                    end
+            local mycomboBox = window:addChild(GUI.comboBox((key%10-1)*11+2, -scrollOffset*13 + math.floor(key/10)*13+16, 10, 1, 0xaaaaaa, 0x2D2D2D, 0xbbbbbb, 0x888888))
+            for groupkey, groupshit in pairs(groups) do
+                if groupshit["name"]==nil then
                 else
-                    textik=groupshit["name"]
-                    mycomboBox:addItem(text.limit(textik, 10, "right")).onTouch = function()
-                        table.insert(groups[mycomboBox.selectedItem],shit)
-                        filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
-                        configurator.onTouch()
+                    local luaisshit=false
+                    for groupelemkey, groupelemshit in pairs(groupshit) do
+                        if groupelemshit==shit then
+                            luaisshit=true
+                        end
+                    end
+                    local textik="fuckyou"
+                    if luaisshit then
+                        textik="*"..groupshit["name"]
+                        mycomboBox:addItem(text.limit(textik, 10, "right")).onTouch = function()     
+                            table.remove(groups[mycomboBox.selectedItem],indexOf(groups[mycomboBox.selectedItem],shit))
+                            filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
+                            configurator.onTouch()
+                        end
+                    else
+                        textik=groupshit["name"]
+                        mycomboBox:addItem(text.limit(textik, 10, "right")).onTouch = function()
+                            table.insert(groups[mycomboBox.selectedItem],shit)
+                            filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
+                            configurator.onTouch()
+                        end
                     end
                 end
-               
             end
         end
     end
@@ -197,12 +228,9 @@ end
 window.tabBar:addItem("Group").onTouch = function()
     window:removeChildren(4)
     for key, shit in pairs(groups) do
-        GUI.alert(shit)
         local meter=window:addChild(MyCustomGroupProgressBar( (key%10-1)*11+2, (math.floor(key/10)*13)+5, 10, 10, {0xFF0000,0xFFFF00,0x00FF00}, 0x1D1D1D, 0x000000, 0,shit))
         meter.update()
         table.insert(meters,meter)
-        --
-
     end
     window:addChild(GUI.framedButton(window.width-5, window.height-2, 5, 3, 0x1D1D1D, 0x1D1D1D, 0x888800, 0x888800, "+")).onTouch = function()
         local myelement={}
@@ -221,7 +249,7 @@ window.actionButtons.close.onTouch = function()
     event.removeHandler(powerbankapphandler)
     window:removeChildren()
     window:remove()
-	workspace:draw()
+	workpace:draw()
 end
 
 maintabcall.onTouch()
