@@ -254,6 +254,7 @@ grouper.onTouch = function()
         myelement['name']="New Group"
         table.insert(groups,myelement)
         filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
+        grouper.onTouch()
     end
 end
 
