@@ -263,10 +263,10 @@ powerbankapphandler=event.addHandler(function()
     end
 end ,5)
 window.actionButtons.close.onTouch = function()
+    
     event.removeHandler(powerbankapphandler)
     window:removeChildren()
     window:remove()
-	workpace:draw()
 end
 
 maintabcall.onTouch()
