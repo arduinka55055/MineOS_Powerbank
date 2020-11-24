@@ -192,7 +192,7 @@ configurator.onTouch = function()
             meter.update()
             table.insert(meters,meter)
 
-            local renamer = window:addChild(GUI.input( (key%10-1)*11+2, -scrollOffset*14 + math.floor(key/10)*14+19, 10, 1, 0x888888, 0x444444, 0xaa0000, 0xff0000, 0x2D0000, "", "name"))
+            local renamer = window:addChild(GUI.input( (key%10-1)*11+2, -scrollOffset*14 + math.floor(key/10)*14+19, 10, 1, 0x888888, 0x444444, 0xaa0000, 0xff0000, 0x2D0000, "", "Rename"))
             renamer.onInputFinished = function(fuck,good)
                 cnames[shit]=good.text
                 filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.names",cnames)
@@ -240,7 +240,7 @@ grouper.onTouch = function()
         meter.update()
         table.insert(meters,meter)
 
-        local renamer = window:addChild(GUI.input( (key%10-1)*11+2, -scrollOffset*13 + math.floor(key/10)*13+15, 10, 1, 0x888888, 0x444444, 0xaa0000, 0xff0000, 0x2D0000, "", "name"))
+        local renamer = window:addChild(GUI.input( (key%10-1)*11+2, -scrollOffset*13 + math.floor(key/10)*13+15, 10, 1, 0x888888, 0x444444, 0xaa0000, 0xff0000, 0x2D0000, "", "Rename"))
         renamer.onInputFinished = function(fuck,good)
             groups[key]["name"]=good.text
             filesystem.writeTable(paths.user.applicationData.."/Powerbank/Powerbank.groups",groups)
